@@ -6,14 +6,12 @@ public class BuyListingWorker : BackgroundService
     private readonly BotConfig _botConfig;
     private readonly ILogger<BuyListingWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
-    private readonly OrderService _orderService;
 
-    public BuyListingWorker(ILogger<BuyListingWorker> logger, IServiceProvider serviceProvider, BotConfig botConfig, OrderService orderService)
+    public BuyListingWorker(ILogger<BuyListingWorker> logger, IServiceProvider serviceProvider, BotConfig botConfig)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _botConfig = botConfig;
-        _orderService = orderService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -27,6 +25,7 @@ public class BuyListingWorker : BackgroundService
                 var exchangeService = scope.ServiceProvider.GetRequiredService<Exchange>();
                 var listingService = scope.ServiceProvider.GetRequiredService<ListingsGetter>();
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                var orderService = scope.ServiceProvider.GetRequiredService<OrderService>();
 
                 var listings = await listingService.GetListings();
                 var latestAnnouncement = listings?.Data?.Catalogs?.FirstOrDefault()?.Articles?.FirstOrDefault()?.Title;
@@ -47,7 +46,7 @@ public class BuyListingWorker : BackgroundService
                 var symbols = ListingsGetter.ExtractSymbols(latestAnnouncement);
                 foreach (var symbol in symbols)
                 {
-                    var (success, message) = await _orderService.BuyListingAsync(symbol);
+                    var (success, message) = await orderService.BuyListingAsync(symbol);
                     if (!success)
                     {
                         _logger.LogDebug(message);

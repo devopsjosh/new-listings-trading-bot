@@ -32,6 +32,7 @@ var host = Host.CreateDefaultBuilder(args)
         // Register Services
         services.AddScoped<Exchange>(provider => new Exchange(exchangeName, apiKey, apiSecret));
         services.AddScoped<ListingsGetter>(provider => new ListingsGetter());
+        services.AddScoped<OrderService>();
 
         // Register Db
         services.AddDbContext<AppDbContext>(options => options.UseNpgsql(connectionString));
