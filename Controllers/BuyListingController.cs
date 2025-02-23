@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
-using new_listing_bot_cs.Services;
 
 namespace new_listing_bot_cs.Controllers
 {

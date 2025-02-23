@@ -4,9 +4,9 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace new_listing_bot_cs.Services
-{
-    public class OrderService
+namespace new_listing_bot_cs;
+
+public class OrderService
     {
         private readonly ILogger<OrderService> _logger;
         private readonly IServiceProvider _serviceProvider;
@@ -82,4 +82,3 @@ namespace new_listing_bot_cs.Services
             }
         }
     }
-}

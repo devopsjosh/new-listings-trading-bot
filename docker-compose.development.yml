@@ -14,7 +14,9 @@
       - DOTNET_USE_POLLING_FILE_WATCHER=1   # Enable file watching for hot reload
     volumes:
       - ./src:/src  # Mount the source code directory to allow hot reload
-    command: ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://+:5000;https://+:5001"]
+      - ./start.sh:/start.sh  # Mount the start.sh script
+    command: >
+      sh -c "./start.sh"
   database:
     container_name: database
     image: postgres
