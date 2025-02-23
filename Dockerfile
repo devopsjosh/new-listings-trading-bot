@@ -34,5 +34,5 @@ WORKDIR /app
 # Make sure the app source code changes can be monitored
 COPY . . 
 # Use dotnet watch for development with hot reload
-ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://+:5000;https://+:5001"]
+#ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://+:5000;https://+:5001"]
 
