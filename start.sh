@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Step 1: Wait for the database to be ready
-echo "Waiting for the database to be ready..."
-until dotnet ef database update; do
-    >&2 echo "Database is unavailable - sleeping"
-    sleep 1
-done
+# echo "Waiting for the database to be ready..."
+# until dotnet ef database update; do
+#     >&2 echo "Database is unavailable - sleeping"
+#     sleep 1
+# done
 
 # Step 2: Check if migration exists
 echo "Checking for existing migrations..."
