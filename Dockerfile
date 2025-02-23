@@ -37,6 +37,9 @@ WORKDIR /app
 # Make sure the app source code changes can be monitored
 COPY . . 
 
+# Install dotnet-ef tool in the development stage
+RUN dotnet tool install --global dotnet-ef
+
 # Copy the start.sh script
 COPY start.sh .
 
