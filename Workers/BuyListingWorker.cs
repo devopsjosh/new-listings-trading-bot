@@ -1,5 +1,6 @@
 using ExchangeSharp;
 using Microsoft.EntityFrameworkCore;
+using new_listing_bot_cs.Services;
 
 namespace new_listing_bot_cs;
 
@@ -8,13 +9,14 @@ public class BuyListingWorker : BackgroundService
     private readonly BotConfig _botConfig;
     private readonly ILogger<BuyListingWorker> _logger;
     private readonly IServiceProvider _serviceProvider;
+    private readonly OrderService _orderService;
 
-
-    public BuyListingWorker(ILogger<BuyListingWorker> logger, IServiceProvider serviceProvider, BotConfig botConfig)
+    public BuyListingWorker(ILogger<BuyListingWorker> logger, IServiceProvider serviceProvider, BotConfig botConfig, OrderService orderService)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _botConfig = botConfig;
+        _orderService = orderService;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -30,12 +32,13 @@ public class BuyListingWorker : BackgroundService
                 var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
                 var listings = await listingService.GetListings();
-                var latestAnnouncement = listings.Data.Catalogs[0].Articles[0].Title;
+                var latestAnnouncement = listings?.Data?.Catalogs?.FirstOrDefault()?.Articles?.FirstOrDefault()?.Title;
+
                 // latestAnnouncement =
                 //     "Binance will list Bitcoin (BTC), Solana (SOL), Ethereum (ETH) and Dogecoin (DOGE)"; // For testing
                 // _logger.LogInformation($"Latest Announcement: {latestAnnouncement}");
 
-                if (!latestAnnouncement.ToLower().Contains("will list"))
+                if (latestAnnouncement == null || !latestAnnouncement.ToLower().Contains("will list"))
                 {
                     // Any lower you'll get rate limited.
                     await Task.Delay(40, stoppingToken);
@@ -46,61 +49,17 @@ public class BuyListingWorker : BackgroundService
 
                 var symbols = ListingsGetter.ExtractSymbols(latestAnnouncement);
                 foreach (var symbol in symbols)
-                    try
+                {
+                    var (success, message) = await _orderService.BuyListingAsync(symbol);
+                    if (!success)
                     {
-                        var symbolExists = await dbContext.Portfolio
-                            .AnyAsync(x => x.ExchangeOrderResult.MarketSymbol == $"{symbol.ToUpper()}_USDT",
-                                stoppingToken);
-                        if (symbolExists)
-                        {
-                            _logger.LogDebug($"{symbol} already bought, skipping...");
-                            continue;
-                        }
-
-                        _logger.LogInformation(
-                            $"Buying {_botConfig.BuyAmount} of {symbol}. We will only Buy the same asset once.");
-
-                        var orderRequest = new ExchangeOrderRequest
-                        {
-                            MarketSymbol = $"{symbol.ToUpper()}_USDT",
-                            Amount = _botConfig.BuyAmount,
-                            IsBuy = true,
-                            OrderType = OrderType.Market,
-                            ExtraParameters =
-                            {
-                                {
-                                    "amount", _botConfig.BuyAmount
-                                } // ExchangeSharp BS. We need to pass amount like this if using Poloniex.
-                            }
-                        };
-
-                        var result = await exchangeService.HandlePlaceOrder(orderRequest);
-                        if (result == null)
-                        {
-                            _logger.LogError($"Failed to place order for {symbol}");
-                            continue;
-                        }
-
-                        var order = new OrderResult
-                        {
-                            ExchangeOrderResult = result,
-                            Exit = new Exit
-                            {
-                                TakeProfitPrice = result.Price + result.Price * _botConfig.TakeProfit / 100,
-                                StopLossPrice = result.Price - result.Price * _botConfig.StopLoss / 100
-                            }
-                        };
-
-                        dbContext.OrderResults.Add(order);
-                        dbContext.Portfolio.Add(order);
-
-                        await dbContext.SaveChangesAsync(stoppingToken);
-                        _logger.LogInformation($"{symbol} Outcome: {result}");
+                        _logger.LogDebug(message);
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogError($"Error processing {symbol}: {ex}");
+                        _logger.LogInformation(message);
                     }
+                }
 
                 // Sleep for a second - only for testing purposes
                 await Task.Delay(300, stoppingToken);
