@@ -33,6 +33,13 @@ FROM build AS dev
 WORKDIR /app
 # Make sure the app source code changes can be monitored
 COPY . . 
+
+# Copy the start.sh script
+COPY start.sh .
+
+# Make the start.sh script executable
+RUN chmod +x start.sh
+
 # Use dotnet watch for development with hot reload
-#ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile", "--urls", "http://+:5000;https://+:5001"]
+ENTRYPOINT ["./start.sh"]
 
