@@ -15,6 +15,9 @@ WORKDIR "/src/."
 RUN dotnet restore "./new-listing-bot-cs.csproj"
 RUN dotnet build "./new-listing-bot-cs.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
+# Install dotnet-ef tool
+RUN dotnet tool install --global dotnet-ef
+
 # Publish stage to prepare the app for production (optional for production, not needed for hot reload)
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
