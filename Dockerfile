@@ -28,6 +28,10 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
+# Copy the dotnet-ef tool from the build stage
+COPY --from=build /root/.dotnet /root/.dotnet
+ENV PATH="/root/.dotnet/tools:${PATH}"
+
 # Default entry point for production
 ENTRYPOINT ["dotnet", "new-listing-bot-cs.dll"]
 
@@ -37,8 +41,9 @@ WORKDIR /app
 # Make sure the app source code changes can be monitored
 COPY . . 
 
-# Install dotnet-ef tool in the development stage
-RUN dotnet tool install --global dotnet-ef
+# Copy the dotnet-ef tool from the build stage
+COPY --from=build /root/.dotnet /root/.dotnet
+ENV PATH="/root/.dotnet/tools:${PATH}"
 
 # Copy the start.sh script
 COPY start.sh .
