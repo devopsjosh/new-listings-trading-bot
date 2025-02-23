@@ -1,6 +1,3 @@
-using ExchangeSharp;
-using Microsoft.EntityFrameworkCore;
-using new_listing_bot_cs.Services;
 
 namespace new_listing_bot_cs;
 

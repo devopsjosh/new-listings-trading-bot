@@ -1,10 +1,5 @@
 using ExchangeSharp;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
-
-namespace new_listing_bot_cs;
 
 public class OrderService
     {
